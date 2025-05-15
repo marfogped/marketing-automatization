@@ -7,20 +7,9 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { Company } from "@/models/companies.model";
 
-interface Company {
-  id: number;
-  name: string;
-  description: string;
-  writingStyle: string;
-  values: string[];
-}
-
-interface CompanyCardProps {
-  company: Company;
-}
-
-export function CompanyCard({ company }: CompanyCardProps) {
+export function CompanyCard({ company }: { company: Company }) {
   return (
     <Link href={`/company/${company.id}`}>
       <Card className="h-full hover:shadow-lg transition-shadow duration-200">
@@ -36,7 +25,7 @@ export function CompanyCard({ company }: CompanyCardProps) {
                 {company.writingStyle}
               </p>
             </div>
-            <div>
+            {/* <div>
               <h4 className="text-sm font-medium mb-2">Company Values</h4>
               <div className="flex flex-wrap gap-2">
                 {company.values.map((value) => (
@@ -45,7 +34,7 @@ export function CompanyCard({ company }: CompanyCardProps) {
                   </Badge>
                 ))}
               </div>
-            </div>
+            </div> */}
           </div>
         </CardContent>
       </Card>

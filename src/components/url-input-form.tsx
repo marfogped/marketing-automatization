@@ -11,16 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { languageNames, type Language } from "@/lib/constants";
 
 interface UrlInputFormProps {
   companyId: number;
-  languages: Language[];
+  languages: string[];
 }
 
 export function UrlInputForm({ companyId, languages }: UrlInputFormProps) {
   const [url, setUrl] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>(
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(
     languages[0]
   );
   const [isLoading, setIsLoading] = useState(false);
@@ -30,8 +29,6 @@ export function UrlInputForm({ companyId, languages }: UrlInputFormProps) {
     setIsLoading(true);
 
     try {
-      // Here you would implement the actual API call to your backend
-      // that triggers the Stagehand bot and N8N workflow
       console.log(
         "Processing URL:",
         url,
@@ -41,10 +38,7 @@ export function UrlInputForm({ companyId, languages }: UrlInputFormProps) {
         selectedLanguage
       );
 
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Reset form
       setUrl("");
     } catch (error) {
       console.error("Error processing URL:", error);
@@ -66,17 +60,14 @@ export function UrlInputForm({ companyId, languages }: UrlInputFormProps) {
             required
             className="flex-1"
           />
-          <Select
-            value={selectedLanguage}
-            onValueChange={(value) => setSelectedLanguage(value as Language)}
-          >
+          <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
             <SelectContent>
               {languages.map((lang) => (
                 <SelectItem key={lang} value={lang}>
-                  {languageNames[lang]}
+                  {lang}
                 </SelectItem>
               ))}
             </SelectContent>

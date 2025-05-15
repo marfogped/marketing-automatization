@@ -1,17 +1,19 @@
+import { companyAdapter } from "@/adapter/company.adapter";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { UrlInputForm } from "@/components/url-input-form";
-import { companies, languageNames } from "@/lib/constants";
+import { getCompanybyId } from "@/lib/airtable";
 
 export default async function CompanyPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const company = companies[Number(params.id) as keyof typeof companies];
+  const company = await getCompanybyId(params.id);
+  const adaptedCompany = companyAdapter(company);
 
-  if (!company) {
+  if (!adaptedCompany) {
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
@@ -29,7 +31,7 @@ export default async function CompanyPage({
         <SiteHeader />
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-8">{company.name}</h1>
+            <h1 className="text-3xl font-bold mb-8">{adaptedCompany.name}</h1>
             <div className="space-y-8">
               <div className="bg-card rounded-lg p-6 shadow-sm">
                 <h2 className="text-xl font-semibold mb-4">
@@ -39,19 +41,19 @@ export default async function CompanyPage({
                   <div>
                     <h3 className="text-sm font-medium mb-1">Description</h3>
                     <p className="text-muted-foreground">
-                      {company.description}
+                      {adaptedCompany.description}
                     </p>
                   </div>
                   <div>
                     <h3 className="text-sm font-medium mb-1">Writing Style</h3>
                     <p className="text-muted-foreground">
-                      {company.writingStyle}
+                      {adaptedCompany.writingStyle}
                     </p>
                   </div>
-                  <div>
+                  {/* <div>
                     <h3 className="text-sm font-medium mb-1">Company Values</h3>
                     <div className="flex flex-wrap gap-2">
-                      {company.values.map((value) => (
+                      {adaptedCompany.values.map((value) => (
                         <span
                           key={value}
                           className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
@@ -60,18 +62,18 @@ export default async function CompanyPage({
                         </span>
                       ))}
                     </div>
-                  </div>
+                  </div> */}
                   <div>
                     <h3 className="text-sm font-medium mb-1">
                       Available Languages
                     </h3>
                     <div className="flex flex-wrap gap-2">
-                      {company.languages.map((lang) => (
+                      {adaptedCompany.languages.map((lang) => (
                         <span
                           key={lang}
                           className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                         >
-                          {languageNames[lang]}
+                          {lang}
                         </span>
                       ))}
                     </div>
@@ -79,8 +81,8 @@ export default async function CompanyPage({
                 </div>
               </div>
               <UrlInputForm
-                companyId={company.id}
-                languages={company.languages}
+                companyId={adaptedCompany.ID}
+                languages={adaptedCompany.languages}
               />
             </div>
           </div>
