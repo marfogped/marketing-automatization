@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -11,6 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { analyzeWebsiteAction } from "@/app/actions/analyze-website";
 import { toast } from "sonner";
 import { AnalysisResults } from "./analysis-results";
@@ -27,6 +37,7 @@ export function UrlInputForm({ companyId, languages }: UrlInputFormProps) {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +60,53 @@ export function UrlInputForm({ companyId, languages }: UrlInputFormProps) {
       toast.error("An unexpected error occurred");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleN8NSubmit = async () => {
+    if (!analysisResults) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(
+        process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL as string,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            analysis: analysisResults,
+            timestamp: new Date().toISOString(),
+          }),
+          mode: "cors",
+          credentials: "omit",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      toast.success("Analysis results sent successfully!");
+
+      const closeButton = document.querySelector(
+        '[data-state="open"] button[aria-label="Close"]'
+      );
+      if (closeButton instanceof HTMLElement) {
+        closeButton.click();
+      }
+    } catch (error) {
+      console.error("Error sending to N8N:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to send analysis results"
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -95,7 +153,54 @@ export function UrlInputForm({ companyId, languages }: UrlInputFormProps) {
         </form>
       </Card>
 
-      {analysisResults && <AnalysisResults data={analysisResults} />}
+      {analysisResults && (
+        <>
+          <AnalysisResults data={analysisResults} />
+          <div className="flex justify-end">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      Send to Email
+                    </>
+                  )}
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Confirm Submission</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to send this analysis to generate an
+                    email?
+                  </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                  </DialogClose>
+                  <Button onClick={handleN8NSubmit} disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      "Confirm & Send"
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </>
+      )}
     </div>
   );
 }
